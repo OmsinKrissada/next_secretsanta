@@ -10,6 +10,9 @@ import Link from 'next/link'
 export default function Home() {
   const router = useRouter()
   const [search,setSearch] = useState('')
+  const enterRoom = (id:string) => {
+    router.push(`/lobby/${id}`)
+  }
   return (
     <>
       <Head>
@@ -23,14 +26,13 @@ export default function Home() {
           <Image src="/christmas-tree.png" alt="Secret Santa" width={200} height={200} />
           <h3>Join here</h3>
           <div className={styles.input}>
-            <input value={search} onKeyDown={(event)=>{event.key==="Enter"?router.push("google.com"):{}}} onChange={(e)=>setSearch(e.target.value)}></input>
+            <input value={search} onKeyDown={(event)=>{event.key==="Enter"? enterRoom(search):{}}} onChange={(e)=>setSearch(e.target.value)}></input>
             <Link href=""><p><FontAwesomeIcon icon={faSearch}/></p></Link>
           </div>
           <p>or</p>
           <div className={styles.create}>
             <Link href=""><h4>Create Room</h4></Link>
           </div>
-
         </main>
       </Layout>
     </>

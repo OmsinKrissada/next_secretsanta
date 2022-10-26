@@ -15,9 +15,10 @@
       transition: all 0.2s ease-in-out;
     }
     input{
+      padding: 0.5rem;
       color: black;
       border: 0rem;
-      font-size: 2rem;
+      font-size: 1.5rem;
       width: 10vw;
       &:focus{
         outline:none!important;

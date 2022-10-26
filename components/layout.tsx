@@ -12,7 +12,7 @@ export default function Layout({ children }) {
         <ul>
           <li>
             <Link href="/" passHref><Image src="/favicon.ico" alt="Secret Santa" width={50} height={50} /></Link>
-            <Link href="/" passHref><p>Home</p></Link>
+            <Link href="/" passHref><h5>Home</h5></Link>
           </li>
           <li>
             <div>
@@ -28,7 +28,7 @@ export default function Layout({ children }) {
       </nav>
           {children}
         <footer className={styles.footer}>
-          <p>created by POP</p>
+          <h5>created by POP</h5>
         </footer>
     </>
   )
