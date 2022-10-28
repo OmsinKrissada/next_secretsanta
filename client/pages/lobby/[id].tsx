@@ -7,9 +7,34 @@ import Router from "next/router"
 import { useState } from "react"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faGift } from "@fortawesome/free-solid-svg-icons"
+import { useEffect } from "react"
+import io from "socket.io-client"
+let socket;
 export default function Lobby(props) {
   const { id } = props
   const { info } = props
+  const [name, setName] = useState('')
+  useEffect(() => {
+    socketInitializer();
+    return () => {
+      console.log("This will be logged on unmount");
+    }
+  })
+
+  const socketInitializer = async () => {
+    await fetch('/api/socket');
+    socket = io()
+
+    socket.on('connect', () => {
+      console.log('connected')
+    })
+
+    socket.on('update-input', msg => {setName(msg)})
+  }
+  const onChangeHandler = (e) => {
+    setName(e.target.value)
+    socket.emit('input-change', e.target.value)
+  }
   return (
     <>
     <Head>
@@ -17,6 +42,11 @@ export default function Lobby(props) {
     </Head>
     <Layout>
       <main className={styles.main}>
+      <input
+      placeholder="Type something"
+      value={name}
+      onChange={onChangeHandler}
+    />
         <div>
           <div className={styles.room_info}>
             <h1>Room: {props.id}</h1>
