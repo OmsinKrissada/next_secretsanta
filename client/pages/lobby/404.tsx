@@ -1,7 +1,7 @@
 import Image from "next/image"
 import Head from "next/head"
 import Link from "next/link"
-import styles from "../styles/Home.module.scss"
+import styles from "../../styles/Home.module.scss"
 export default function Custom404() {
   return (
     <>

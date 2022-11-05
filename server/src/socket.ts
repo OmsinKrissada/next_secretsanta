@@ -30,7 +30,7 @@ function socket({ io }: { io: Server }) {
     /*
      * When a user creates a new room
      */
-    socket.on(EVENTS.CLIENT.CREATE_LOBBY, ({ lobbyName }) => {
+    socket.on(EVENTS.CLIENT.CREATE_LOBBY, ({ lobbyName,username }) => {
       console.log({ lobbyName });
       // create a roomId
       const lobbyId = nanoid();
@@ -38,7 +38,6 @@ function socket({ io }: { io: Server }) {
       lobbys[lobbyId] = {
         name: lobbyName,
       };
-
       socket.join(lobbyId);
 
       // broadcast an event saying there is a new room
@@ -48,16 +47,19 @@ function socket({ io }: { io: Server }) {
       socket.emit(EVENTS.SERVER.LOBBYS, lobbys);
       // emit event back the room creator saying they have joined a room
       socket.emit(EVENTS.SERVER.JOINED_LOBBY, lobbyId);
+      socket.to(lobbyId).emit(EVENTS.SERVER.ROOM_PLAYER,({name:username,host:true}))
     });
 
+    socket.on(EVENTS.CLIENT.START_GAME,()=>{})
     /*
      * When a user joins a room
      */
-    socket.on(EVENTS.CLIENT.JOIN_LOBBY, (lobbyId) => {
+    socket.on(EVENTS.CLIENT.JOIN_LOBBY, ({lobbyId,username}) => {
       socket.join(lobbyId);
-
+      socket.to(lobbyId).emit(EVENTS.SERVER.ROOM_PLAYER,({name:username,host:false}))
       socket.emit(EVENTS.SERVER.JOINED_LOBBY, lobbyId);
     });
+    
   });
 }
 

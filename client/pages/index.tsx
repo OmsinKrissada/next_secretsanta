@@ -4,37 +4,52 @@ import styles from "../styles/Home.module.scss";
 import Layout from "../components/layout";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/router";
-import { faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
+import { faPlus, faSearch, faUser } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { useSockets } from "../context/socket.context";
-// import
+import { customAlphabet } from "nanoid";
 import Link from "next/link";
+import EVENTS from "../config/events";
 
 export default function Home() {
-  const { socket, username, setUsername } = useSockets();
-  const usernameRef = useRef(null);
+  const { socket, username, setUsername, lobbyId, lobbys } = useSockets();
+  const newLobbyRef = useRef<HTMLInputElement>(null);
+  const usernameRef = useRef<HTMLInputElement>();
   const router = useRouter();
   const [search, setSearch] = useState("");
 
-  const enterRoom = (id: string) => {
-    router.push(`/lobby/${id}`);
-  };
 
-  const handleUsername = () => {
+  const handleUsername = async () => {
     const name = usernameRef.current.value;
-
+    setUsername(name);
     if (!name) {
       return;
     }
-
-    setUsername(name);
     localStorage.setItem("username", name);
   };
 
+  const handleCreateRoom = () => {
+    var lobbyName
+    if (!String(newLobbyRef.current.value).trim()) {
+      const nanoid = customAlphabet("0123456789", 6);
+      lobbyName = nanoid();
+    } else {
+      lobbyName = newLobbyRef.current.value || "";
+    }
+    socket.emit(EVENTS.CLIENT.CREATE_LOBBY, { lobbyName,username });
+    router.push(`/lobby/${lobbyName}`);
+  };
+
+  const handleJoinRoom = (key) => {
+    if (key === lobbyId) return;
+    socket.emit(EVENTS.CLIENT.JOIN_LOBBY, {key,username});
+    router.push(`/lobby/${key}`);
+  };
+
   useEffect(() => {
-    console.log(username);
-    if (usernameRef)
+    if (usernameRef.current){
       usernameRef.current.value = localStorage.getItem("username") || "";
+    }
   }, []);
 
   return (
@@ -46,17 +61,14 @@ export default function Home() {
       </Head>
       <Layout>
         <main className={styles.main}>
-          <h1>Welcome to the Secret santa</h1>
+          <h1>Welcome {username} to the Secret santa</h1>
           <Image
             src="/christmas-tree.png"
             alt="Secret Santa"
             width={200}
             height={200}
           />
-          {
-          username ? (<h1>{username}</h1>):(<h1>none</h1>)
-          }
-          {!username && (
+          {!username ? (
             <div className={styles.input}>
               <input
                 ref={usernameRef}
@@ -65,33 +77,38 @@ export default function Home() {
                 }}
                 placeholder="rudolph"
               ></input>
-              <p onClick={() => handleUsername()}>
+              <p onClick={handleUsername}>
                 <FontAwesomeIcon icon={faUser} />
               </p>
             </div>
-          )}
-          {username && (
+          ) : (
             <>
               <h3>Join here</h3>
               <div className={styles.input}>
                 <input
                   value={search}
                   onKeyDown={(event) => {
-                    event.key === "Enter" ? enterRoom(search) : {};
+                    event.key === "Enter" ? handleJoinRoom(search) : {};
                   }}
+                  placeholder="123456"
                   onChange={(e) => setSearch(e.target.value)}
                 ></input>
-                <Link href="">
-                  <p>
-                    <FontAwesomeIcon icon={faSearch} />
-                  </p>
-                </Link>
+                <p onClick={() => handleJoinRoom(search)}>
+                  <FontAwesomeIcon icon={faSearch} />
+                </p>
               </div>
-              <p>or</p>
-              <div className={styles.create}>
-                <Link href="">
-                  <h4>Create Room</h4>
-                </Link>
+              <h3>Create Lobby</h3>
+              <div className={styles.input}>
+                <input
+                  ref = {newLobbyRef}
+                  onKeyDown={(event) => {
+                    event.key === "Enter" ? handleCreateRoom() : {};
+                  }}
+                  placeholder="abcdefu"
+                />
+                <p onClick={() => handleCreateRoom()}>
+                  <FontAwesomeIcon icon={faPlus} />
+                </p>
               </div>
             </>
           )}

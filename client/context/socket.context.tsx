@@ -7,11 +7,10 @@ interface Context {
   socket: Socket;
   username?: string;
   setUsername: Function;
-
-  // messages?: { message: string; time: string; username: string }[];
-  // setMessages: Function;
-  roomId?: string;
-  rooms: object;
+  lobbyId?: string;
+  lobbys: object;
+  players?: {name:string,host:boolean}[];
+  setPlayers: Function;
 }
 
 const socket = io(SOCKET_URL);
@@ -19,16 +18,16 @@ const socket = io(SOCKET_URL);
 const SocketContext = createContext<Context>({
   socket,
   setUsername: () => false,
-  // setMessages: () => false,
-  rooms: {},
-  // messages: [],
+  lobbys: {},
+  setPlayers: () => false,
+  players: [],
 });
 
 function SocketsProvider(props: any) {
   const [username, setUsername] = useState("");
-  const [roomId, setRoomId] = useState("");
-  const [rooms, setRooms] = useState({});
-  // const [messages, setMessages] = useState([]);
+  const [lobbyId, setLobbyId] = useState("");
+  const [lobbys, setLobbys] = useState({});
+  const [players, setPlayers] = useState([]);
 
   useEffect(() => {
     window.onfocus = function () {
@@ -37,24 +36,22 @@ function SocketsProvider(props: any) {
   }, []);
 
   socket.on(EVENTS.SERVER.LOBBYS, (value) => {
-    setRooms(value);
+    setLobbys(value);
   });
 
   socket.on(EVENTS.SERVER.JOINED_LOBBY, (value) => {
-    setRoomId(value);
-
-    // setMessages([]);
+    setLobbyId(value);
   });
 
-  // useEffect(() => {
-  //   socket.on(EVENTS.SERVER.ROOM_MESSAGE, ({ message, username, time }) => {
-  //     if (!document.hasFocus()) {
-  //       document.title = "New message...";
-  //     }
-
-  //     setMessages((messages) => [...messages, { message, username, time }]);
-  //   });
-  // }, [socket]);
+  useEffect(() => {
+    socket.on(EVENTS.SERVER.ROOM_PLAYER,({username,host}) => {
+      if (!document.hasFocus()) {
+        document.title = "Joining...";
+      }
+      
+      setPlayers((players)=>[...players,{username,host}])
+    })
+  }, [socket]);
 
   return (
     <SocketContext.Provider
@@ -62,10 +59,10 @@ function SocketsProvider(props: any) {
         socket,
         username,
         setUsername,
-        rooms,
-        roomId,
-        // messages,
-        // setMessages,
+        lobbys,
+        lobbyId,
+        players,
+        setPlayers,
       }}
       {...props}
     />
