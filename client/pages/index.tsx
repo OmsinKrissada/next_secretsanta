@@ -25,31 +25,34 @@ export default function Home() {
     if (!name) {
       return;
     }
-    localStorage.setItem("username", name);
+    console.log('setting username in sessionstorage');
+    sessionStorage.setItem("username", name);
   };
 
   const handleCreateRoom = () => {
-    var lobbyName
+    var lobbyName;
     if (!String(newLobbyRef.current.value).trim()) {
       const nanoid = customAlphabet("0123456789", 6);
       lobbyName = nanoid();
     } else {
       lobbyName = newLobbyRef.current.value || "";
     }
-    socket.emit(EVENTS.CLIENT.CREATE_LOBBY, { lobbyName,username });
-    router.push(`/lobby/${lobbyName}`);
+    socket.emit(EVENTS.CLIENT.CREATE_LOBBY, { lobbyName, username });
   };
+
 
   const handleJoinRoom = (key) => {
     if (key === lobbyId) return;
-    socket.emit(EVENTS.CLIENT.JOIN_LOBBY, {key,username});
     router.push(`/lobby/${key}`);
   };
 
   useEffect(() => {
-    if (usernameRef.current){
-      usernameRef.current.value = localStorage.getItem("username") || "";
+    if (usernameRef.current) {
+      usernameRef.current.value = sessionStorage.getItem("username") || "";
     }
+    socket.on(EVENTS.SERVER.JOINED_LOBBY, ({ lobbyId, players }) => {
+      router.push(`/lobby/${lobbyId}`);
+    });
   }, []);
 
   return (
@@ -100,7 +103,7 @@ export default function Home() {
               <h3>Create Lobby</h3>
               <div className={styles.input}>
                 <input
-                  ref = {newLobbyRef}
+                  ref={newLobbyRef}
                   onKeyDown={(event) => {
                     event.key === "Enter" ? handleCreateRoom() : {};
                   }}
