@@ -9,7 +9,7 @@ interface Context {
   setUsername: Function;
   lobbyId?: string;
   lobbys: object;
-  players?: {name:string,host:boolean}[];
+  players?: { id: string, name: string, isHost: boolean; }[];
   setPlayers: Function;
 }
 
@@ -39,18 +39,19 @@ function SocketsProvider(props: any) {
     setLobbys(value);
   });
 
-  socket.on(EVENTS.SERVER.JOINED_LOBBY, (value) => {
-    setLobbyId(value);
+  socket.on(EVENTS.SERVER.JOINED_LOBBY, ({ id, players }) => {
+    setLobbyId(id);
+    setPlayers(players);
   });
 
   useEffect(() => {
-    socket.on(EVENTS.SERVER.ROOM_PLAYER,({username,host}) => {
+    socket.on(EVENTS.SERVER.ROOM_PLAYER, (players) => {
       if (!document.hasFocus()) {
         document.title = "Joining...";
       }
-      
-      setPlayers((players)=>[...players,{username,host}])
-    })
+
+      setPlayers(players);
+    });
   }, [socket]);
 
   return (
