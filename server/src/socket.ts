@@ -31,7 +31,6 @@ function socket({ io }: { io: Server; }) {
      * When a user creates a new room
      */
     socket.on(EVENTS.CLIENT.CREATE_LOBBY, ({ lobbyName, username }) => {
-      console.log({ lobbyName });
       // create a roomId
       const lobbyId = nanoid();
       // add a new room to the rooms object
@@ -43,7 +42,7 @@ function socket({ io }: { io: Server; }) {
       const lobby = lobbys.get(lobbyId);
       // socket.join(lobbyId);
 
-      console.log(`lobby created: ID: ${lobbyId}, Name: ${lobbyName}`);
+      logger.info(`lobby created: ID: ${lobbyId}, Name: ${lobbyName}`);
 
       lobby!.players.push({ id: socket.id, name: username, isHost: true });
 
@@ -62,7 +61,7 @@ function socket({ io }: { io: Server; }) {
      * When a user joins a room
      */
     socket.on(EVENTS.CLIENT.JOIN_LOBBY, async ({ lobbyId, username }) => {
-      console.log(`User trying to join (${username} -> ${lobbyId}), Available (${lobbys.size}): ${JSON.stringify(lobbys)}`);
+      logger.info(`User trying to join (${username} -> ${lobbyId}), Available (${lobbys.size}): ${JSON.stringify(lobbys)}`);
       const lobby = lobbys.get(lobbyId);
       if (!lobby) {
         socket.emit('LOBBY_NOT_FOUND', lobbyId);
@@ -74,7 +73,7 @@ function socket({ io }: { io: Server; }) {
         lobby.players.push({ id: socket.id, name: username, isHost: false });
       socket.emit(EVENTS.SERVER.JOINED_LOBBY, { lobbyId, players: lobby.players });
       socket.to(lobbyId).emit(EVENTS.SERVER.ROOM_PLAYER, lobby.players);
-      console.log('Join approved.');
+      logger.info('Join approved.');
     });
 
   });
